@@ -168,7 +168,7 @@ export default function LandingPage() {
     try {
       if (typeof window.ethereum !== "undefined" && walletClient) {
         let provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = provider.getSigner();
+        const signer = await provider.getSigner();
 
         const contract = new ethers.Contract(
           DEPOSIT_CONTRACT_ADDRESS,
