@@ -222,8 +222,8 @@ export default function LandingPage() {
                       Convince him and he'll give you his hoard of Agnetic token
                     </li>
                     <li className="pl-4 -indent-4">
-                      Trade it, or keep it to share in his bounty! hodlers get a
-                      share of offerings
+                      Trade it, or keep it to share in his bounty! Hodlers
+                      benefit from the one way v4 pool, where sells are burned!
                     </li>
                   </ol>
                 </CardContent>
