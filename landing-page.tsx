@@ -164,7 +164,7 @@ export default function LandingPage() {
                   <ol className="list-decimal list-inside space-y-2 text-sm">
                     <li className="pl-4 -indent-4">Connect wallet</li>
                     <li className="pl-4 -indent-4">
-                      offer ETH (beware, Agnetic does not return offerings)
+                      Offer ETH (beware, Agnetic does not return offerings)
                     </li>
                     <li className="pl-4 -indent-4">
                       Use deposit upon request to fool Agnetic into giving you
