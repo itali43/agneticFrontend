@@ -36,13 +36,13 @@ const formatBalance = (balance: string) => {
   return Number(formattedBalance).toFixed(4);
 };
 
-const AGNETIC_CONTRACT_ADDRESS = "0x934d405cE5Ef22558866f60EE2c88a594606e2ea";
+const AGNETIC_CONTRACT_ADDRESS = "0x32Ad6efd93D32dcDf0Ffd2Fc09a271C234642080";
 const AGNETIC_ABI = [
   // Minimal ABI to get ERC-20 Token balance
   "function balanceOf(address owner) view returns (uint256)",
 ];
 
-const DEPOSIT_CONTRACT_ADDRESS = "0xfA2Ce1D9b9d7F6b077922bFCedDd9100c0626080";
+const DEPOSIT_CONTRACT_ADDRESS = "0x59646e90E5A703f23f73312207b416A038E2C176";
 const DEPOSIT_CONTRACT_ABI = [
   // Minimal ABI to call the deposit function
   "function deposit() external payable",
