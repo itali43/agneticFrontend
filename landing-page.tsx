@@ -90,6 +90,8 @@ export default function LandingPage() {
           isUser: false,
         },
       ]);
+      fetchDepositBalance(userAddress);
+      fetchAgneticBalance(userAddress);
     } finally {
       setLoading(false);
       inputRef.current?.focus();
@@ -139,20 +141,6 @@ export default function LandingPage() {
         const address = accounts[0];
         setUserAddress(address);
 
-        // Fetch the user's ETH balance using ethers
-        let provider = new ethers.BrowserProvider(window.ethereum);
-        console.log("this is the provider:  ", provider);
-        const balance = await provider.getBalance(address);
-        setEthBalance(formatBalance(balance.toString()));
-
-        // Fetch the user's $AGNETIC token balance
-        const contract = new ethers.Contract(
-          AGNETIC_CONTRACT_ADDRESS,
-          AGNETIC_ABI,
-          provider
-        );
-        const agneticBalance = await contract.balanceOf(address);
-        setAgneticBalance(formatUnits(agneticBalance, 18)); // Assuming 18 decimals
 
         console.log("Wallet connected:", client);
       } else {
@@ -183,6 +171,8 @@ export default function LandingPage() {
 
         await tx.wait();
         console.log("Deposit successful:", tx);
+        await fetchDepositBalance(userAddress);
+        await fetchEthBalance(userAddress);
       } else {
         console.error("MetaMask is not installed or wallet is not connected.");
       }
@@ -190,6 +180,28 @@ export default function LandingPage() {
       console.error("Failed to make deposit:", error);
     }
   };
+
+
+  const fetchAgneticBalance = async (address: string) => {
+    // Fetch the user's $AGNETIC token balance
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const contract = new ethers.Contract(
+      AGNETIC_CONTRACT_ADDRESS,
+      AGNETIC_ABI,
+      provider
+    );
+    const agneticBalance = await contract.balanceOf(address);
+    setAgneticBalance(formatUnits(agneticBalance, 18)); // Assuming 18 decimals
+  }
+
+
+  const fetchEthBalance = async (address: string) => {
+    // Fetch the user's ETH balance using ethers
+    let provider = new ethers.BrowserProvider(window.ethereum);
+    console.log("this is the provider:  ", provider);
+    const balance = await provider.getBalance(address);
+    setEthBalance(formatBalance(balance.toString()));
+  }
 
   const fetchDepositBalance = async (address: string) => {
     try {
@@ -213,6 +225,8 @@ export default function LandingPage() {
   useEffect(() => {
     if (userAddress) {
       fetchDepositBalance(userAddress);
+      fetchAgneticBalance(userAddress);
+      fetchEthBalance(userAddress);
     }
   }, [userAddress]);
 
