@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
-import { ethers, formatEther } from "ethers";
+import { ethers, formatEther, parseEther, formatUnits } from "ethers";
 
 import { createWalletClient, custom } from "viem";
 import { baseSepolia } from "viem/chains";
@@ -42,12 +42,19 @@ const AGNETIC_ABI = [
   "function balanceOf(address owner) view returns (uint256)",
 ];
 
+const DEPOSIT_CONTRACT_ADDRESS = "0x934d405cE5Ef22558866f60EE2c88a594606e2ea";
+const DEPOSIT_CONTRACT_ABI = [
+  // Minimal ABI to call the deposit function
+  "function deposit() external payable",
+];
+
 export default function LandingPage() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [walletClient, setWalletClient] = useState(null);
   const [userAddress, setUserAddress] = useState<string>("");
   const [ethBalance, setEthBalance] = useState<string | null>(null);
   const [agneticBalance, setAgneticBalance] = useState<string | null>(null);
+  const [depositBalance, setDepositBalance] = useState<string | null>(null);
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
@@ -144,7 +151,7 @@ export default function LandingPage() {
           provider
         );
         const agneticBalance = await contract.balanceOf(address);
-        setAgneticBalance(ethers.utils.formatUnits(agneticBalance, 18)); // Assuming 18 decimals
+        setAgneticBalance(formatUnits(agneticBalance, 18)); // Assuming 18 decimals
 
         console.log("Wallet connected:", client);
       } else {
@@ -154,6 +161,59 @@ export default function LandingPage() {
       console.error("Failed to connect wallet:", error);
     }
   };
+
+  const handleMakeDeposit = async () => {
+    console.log("Attempting to make a deposit...");
+    try {
+      if (typeof window.ethereum !== "undefined" && walletClient) {
+        let provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = provider.getSigner();
+
+        const contract = new ethers.Contract(
+          DEPOSIT_CONTRACT_ADDRESS,
+          DEPOSIT_CONTRACT_ABI,
+          signer
+        );
+
+        // Call the deposit function
+        const tx = await contract.deposit({
+          value: parseEther("0.001875"), // $5, as of Feb 9th
+        });
+
+        await tx.wait();
+        console.log("Deposit successful:", tx);
+      } else {
+        console.error("MetaMask is not installed or wallet is not connected.");
+      }
+    } catch (error) {
+      console.error("Failed to make deposit:", error);
+    }
+  };
+
+  const fetchDepositBalance = async (address: string) => {
+    try {
+      if (typeof window.ethereum !== "undefined" && walletClient) {
+        let provider = new ethers.BrowserProvider(window.ethereum);
+        const contract = new ethers.Contract(
+          DEPOSIT_CONTRACT_ADDRESS,
+          DEPOSIT_CONTRACT_ABI,
+          provider
+        );
+
+        const balance = await contract.depositBalances(address);
+        setDepositBalance(formatBalance(balance.toString()));
+      }
+    } catch (error) {
+      console.error("Failed to fetch deposit balance:", error);
+      setDepositBalance("0");
+    }
+  };
+
+  useEffect(() => {
+    if (userAddress) {
+      fetchDepositBalance(userAddress);
+    }
+  }, [userAddress]);
 
   return (
     <div className="min-h-screen bg-white text-black flex flex-col">
@@ -254,8 +314,9 @@ export default function LandingPage() {
                 <Button
                   variant="outline"
                   className="w-full border-gold text-gold hover:bg-gold/10"
+                  onClick={handleMakeDeposit}
                 >
-                  Make Deposit
+                  Make Deposit (current deposit: {depositBalance || "0"} ETH)
                 </Button>
               </div>
             </div>
