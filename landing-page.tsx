@@ -32,6 +32,9 @@ async function callAgentkit(address: string, text: string) {
 }
 
 const formatBalance = (balance: string) => {
+  if (!balance || balance === "0x") {
+    return 0;
+  }
   const formattedBalance = formatEther(balance);
   return Number(formattedBalance).toFixed(4);
 };
@@ -357,16 +360,14 @@ export default function LandingPage() {
                     {chatMessages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${
-                          message.isUser ? "justify-end" : "justify-start"
-                        }`}
+                        className={`flex ${message.isUser ? "justify-end" : "justify-start"
+                          }`}
                       >
                         <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            message.isUser
-                              ? "bg-gold text-white"
-                              : "bg-white text-black border border-gold"
-                          }`}
+                          className={`max-w-[80%] p-3 rounded-lg ${message.isUser
+                            ? "bg-gold text-white"
+                            : "bg-white text-black border border-gold"
+                            }`}
                         >
                           {message.content}
                         </div>
