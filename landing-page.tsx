@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { ethers, formatEther } from "ethers";
 
 import { createWalletClient, custom, baseTransport } from "viem";
-import { base } from "viem/chains";
+import { baseSepolia } from "viem/chains";
 
 interface ChatMessage {
   id: string;
@@ -15,22 +15,20 @@ interface ChatMessage {
   isUser: boolean;
 }
 
-
 async function callAgentkit(text: string) {
-  const response = await fetch('http://13.57.253.231:3000/chat', {
-    method: 'POST',
+  const response = await fetch("http://13.57.253.231:3000/chat", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      prompt: text
-    })
+      prompt: text,
+    }),
   });
 
   const data = await response.json();
   return data.responses[data.responses.length - 1];
 }
-
 
 const formatBalance = (balance: string) => {
   const formattedBalance = formatEther(balance);
@@ -66,18 +64,22 @@ export default function LandingPage() {
     setInputValue(""); // Clear the input field immediately
 
     // Append the user's message
-    setChatMessages(prevMessages => [
+    setChatMessages((prevMessages) => [
       ...prevMessages,
-      { id: prevMessages.length.toString(), content: message, isUser: true }
+      { id: prevMessages.length.toString(), content: message, isUser: true },
     ]);
 
     try {
       const response = await callAgentkit(message);
 
       // Append the bot's response
-      setChatMessages(prevMessages => [
+      setChatMessages((prevMessages) => [
         ...prevMessages,
-        { id: prevMessages.length.toString(), content: response, isUser: false }
+        {
+          id: prevMessages.length.toString(),
+          content: response,
+          isUser: false,
+        },
       ]);
     } finally {
       setLoading(false);
@@ -86,7 +88,9 @@ export default function LandingPage() {
   };
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
-      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      const viewport = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      );
       if (viewport) {
         viewport.scrollTop = viewport.scrollHeight;
       }
@@ -111,7 +115,7 @@ export default function LandingPage() {
     try {
       if (typeof window.ethereum !== "undefined") {
         const client = createWalletClient({
-          chain: base,
+          chain: baseSepolia,
           transport: custom(window.ethereum),
         });
 
@@ -274,14 +278,16 @@ export default function LandingPage() {
                     {chatMessages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${message.isUser ? "justify-end" : "justify-start"
-                          }`}
+                        className={`flex ${
+                          message.isUser ? "justify-end" : "justify-start"
+                        }`}
                       >
                         <div
-                          className={`max-w-[80%] p-3 rounded-lg ${message.isUser
-                            ? "bg-gold text-white"
-                            : "bg-white text-black border border-gold"
-                            }`}
+                          className={`max-w-[80%] p-3 rounded-lg ${
+                            message.isUser
+                              ? "bg-gold text-white"
+                              : "bg-white text-black border border-gold"
+                          }`}
                         >
                           {message.content}
                         </div>
