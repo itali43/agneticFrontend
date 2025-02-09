@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
 import { ethers, formatEther } from "ethers";
 
-import { createWalletClient, custom, baseTransport } from "viem";
+import { createWalletClient, custom } from "viem";
 import { baseSepolia } from "viem/chains";
 
 interface ChatMessage {
@@ -15,14 +15,15 @@ interface ChatMessage {
   isUser: boolean;
 }
 
-async function callAgentkit(text: string) {
+async function callAgentkit(address: string, text: string) {
+  const send_text = "(User address: " + address + ")" + text;
   const response = await fetch("http://13.57.253.231:3000/chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      prompt: text,
+      prompt: send_text,
     }),
   });
 
@@ -44,7 +45,7 @@ const AGNETIC_ABI = [
 export default function LandingPage() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [walletClient, setWalletClient] = useState(null);
-  const [userAddress, setUserAddress] = useState<string | null>(null);
+  const [userAddress, setUserAddress] = useState<string>("");
   const [ethBalance, setEthBalance] = useState<string | null>(null);
   const [agneticBalance, setAgneticBalance] = useState<string | null>(null);
 
@@ -70,7 +71,7 @@ export default function LandingPage() {
     ]);
 
     try {
-      const response = await callAgentkit(message);
+      const response = await callAgentkit(userAddress, message);
 
       // Append the bot's response
       setChatMessages((prevMessages) => [
@@ -173,7 +174,7 @@ export default function LandingPage() {
                 {ethBalance || "0"} ETH
               </span>
               <span className="text-black text-xs">
-                {agneticBalance || "0"} $AGNETIC
+                {agneticBalance || "0"} $AGOD
               </span>
             </div>
           )}
@@ -212,18 +213,20 @@ export default function LandingPage() {
                   <ol className="list-decimal list-inside space-y-2 text-sm">
                     <li className="pl-4 -indent-4">Connect wallet</li>
                     <li className="pl-4 -indent-4">
-                      Offer ETH (beware, Agnetic does not return offerings)
+                      Deposit ETH as an offering (beware, Agnetic does not
+                      return offerings)
                     </li>
                     <li className="pl-4 -indent-4">
-                      Use deposit upon request to fool Agnetic into giving you
-                      his token
+                      After depositing, chat with Agnetic to convince or fool
+                      him into giving you his token
                     </li>
                     <li className="pl-4 -indent-4">
-                      Convince him and he'll give you his hoard of Agnetic token
+                      Convince him and he'll give you an appropriate amount of
+                      $AGOD, fail and he will destroy your offering.
                     </li>
                     <li className="pl-4 -indent-4">
-                      Trade it, or keep it to share in his bounty! Hodlers
-                      benefit from the one way v4 pool, where sells are burned!
+                      Trade $AGOD, or keep it to share in his bounty! Hodlers
+                      get a boost whenever an offering is destroyed.
                     </li>
                   </ol>
                 </CardContent>
