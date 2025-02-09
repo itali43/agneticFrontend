@@ -17,7 +17,7 @@ interface ChatMessage {
 
 async function callAgentkit(address: string, text: string) {
   const send_text = "(User address: " + address + ")" + text;
-  const response = await fetch("http://13.57.253.231:3000/chat", {
+  const response = await fetch(process.env.NEXT_PUBLIC_API_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
