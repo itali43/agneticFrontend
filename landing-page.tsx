@@ -42,10 +42,11 @@ const AGNETIC_ABI = [
   "function balanceOf(address owner) view returns (uint256)",
 ];
 
-const DEPOSIT_CONTRACT_ADDRESS = "0x934d405cE5Ef22558866f60EE2c88a594606e2ea";
+const DEPOSIT_CONTRACT_ADDRESS = "0xfA2Ce1D9b9d7F6b077922bFCedDd9100c0626080";
 const DEPOSIT_CONTRACT_ABI = [
   // Minimal ABI to call the deposit function
   "function deposit() external payable",
+  "function depositBalances(address owner) view returns (uint128)",
 ];
 
 export default function LandingPage() {
@@ -342,16 +343,14 @@ export default function LandingPage() {
                     {chatMessages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${
-                          message.isUser ? "justify-end" : "justify-start"
-                        }`}
+                        className={`flex ${message.isUser ? "justify-end" : "justify-start"
+                          }`}
                       >
                         <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            message.isUser
-                              ? "bg-gold text-white"
-                              : "bg-white text-black border border-gold"
-                          }`}
+                          className={`max-w-[80%] p-3 rounded-lg ${message.isUser
+                            ? "bg-gold text-white"
+                            : "bg-white text-black border border-gold"
+                            }`}
                         >
                           {message.content}
                         </div>
