@@ -15,7 +15,6 @@ interface ChatMessage {
 }
 
 
-
 async function callAgentkit(text: string) {
   const response = await fetch('http://13.57.253.231:3000/chat', {
     method: 'POST',
@@ -71,13 +70,18 @@ export default function LandingPage() {
     }
   };
   const scrollToBottom = () => {
-    scrollAreaRef.current?.focus();
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
     }
+    inputRef.current?.focus();
   };
   useEffect(() => {
-    scrollToBottom();
+    // Add a small delay to ensure content is rendered
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
   }, [chatMessages]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -86,12 +90,6 @@ export default function LandingPage() {
       handleSubmit();
     }
   };
-
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
-  }, []);
 
   const handleConnectWallet = async () => {
     console.log("handling wallet call...");
@@ -173,6 +171,7 @@ export default function LandingPage() {
               <div className="w-[480px] flex flex-col space-y-2">
                 <div className="flex space-x-2">
                   <Input
+                    ref={inputRef}
                     type="text"
                     placeholder="Enter your request..."
                     className="flex-grow border-gold focus:ring-gold"
