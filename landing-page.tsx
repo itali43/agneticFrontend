@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
+import { ethers, formatEther } from "ethers";
 
 import { createWalletClient, custom, baseTransport } from "viem";
 import { base } from "viem/chains";
@@ -31,9 +32,23 @@ async function callAgentkit(text: string) {
 }
 
 
+const formatBalance = (balance: string) => {
+  const formattedBalance = formatEther(balance);
+  return Number(formattedBalance).toFixed(4);
+};
+
+const AGNETIC_CONTRACT_ADDRESS = "0x934d405cE5Ef22558866f60EE2c88a594606e2ea";
+const AGNETIC_ABI = [
+  // Minimal ABI to get ERC-20 Token balance
+  "function balanceOf(address owner) view returns (uint256)",
+];
+
 export default function LandingPage() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [walletClient, setWalletClient] = useState(null);
+  const [userAddress, setUserAddress] = useState<string | null>(null);
+  const [ethBalance, setEthBalance] = useState<string | null>(null);
+  const [agneticBalance, setAgneticBalance] = useState<string | null>(null);
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
@@ -92,15 +107,44 @@ export default function LandingPage() {
   };
 
   const handleConnectWallet = async () => {
-    console.log("handling wallet call...");
+    console.log("Attempting to connect wallet...");
     try {
-      const client = createWalletClient({
-        chain: base,
-        transport: baseTransport,
-      });
-      setWalletClient(client);
-      // You can add more logic here to handle the connected wallet
-      console.log("Wallet connected:", client);
+      if (typeof window.ethereum !== "undefined") {
+        const client = createWalletClient({
+          chain: base,
+          transport: custom(window.ethereum),
+        });
+
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+
+        setWalletClient(client);
+
+        // Fetch the user's address
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+        const address = accounts[0];
+        setUserAddress(address);
+
+        // Fetch the user's ETH balance using ethers
+        let provider = new ethers.BrowserProvider(window.ethereum);
+        console.log("this is the provider:  ", provider);
+        const balance = await provider.getBalance(address);
+        setEthBalance(formatBalance(balance.toString()));
+
+        // Fetch the user's $AGNETIC token balance
+        const contract = new ethers.Contract(
+          AGNETIC_CONTRACT_ADDRESS,
+          AGNETIC_ABI,
+          provider
+        );
+        const agneticBalance = await contract.balanceOf(address);
+        setAgneticBalance(ethers.utils.formatUnits(agneticBalance, 18)); // Assuming 18 decimals
+
+        console.log("Wallet connected:", client);
+      } else {
+        console.error("MetaMask is not installed.");
+      }
     } catch (error) {
       console.error("Failed to connect wallet:", error);
     }
@@ -118,12 +162,24 @@ export default function LandingPage() {
             Agnetic The Magnificent
           </h1>
         </div>
-        <div className="w-[200px] flex justify-end">
+        <div className="w-[300px] flex justify-end items-center">
+          {userAddress && (
+            <div className="text-right flex space-x-8 mr-4">
+              <span className="text-black text-xs">
+                {ethBalance || "0"} ETH
+              </span>
+              <span className="text-black text-xs">
+                {agneticBalance || "0"} $AGNETIC
+              </span>
+            </div>
+          )}
           <Button
             className="bg-gold text-white hover:bg-gold/90"
             onClick={handleConnectWallet}
           >
-            Connect Wallet
+            {userAddress
+              ? `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`
+              : "Connect Wallet"}
           </Button>
         </div>
       </nav>
