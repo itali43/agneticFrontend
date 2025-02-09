@@ -48,15 +48,26 @@ export default function LandingPage() {
   }, []);
 
   const handleConnectWallet = async () => {
-    console.log("handling wallet call...");
+    console.log("Attempting to connect wallet...");
     try {
-      const client = createWalletClient({
-        chain: base,
-        transport: baseTransport,
-      });
-      setWalletClient(client);
-      // You can add more logic here to handle the connected wallet
-      console.log("Wallet connected:", client);
+      // Check if MetaMask is installed
+      if (typeof window.ethereum !== "undefined") {
+        // Create a wallet client using Viem
+        const client = createWalletClient({
+          chain: base,
+          transport: custom(window.ethereum), // Use MetaMask's provider
+        });
+
+        // Request account access if needed
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+
+        // Set the wallet client in your state or context
+        setWalletClient(client);
+
+        console.log("Wallet connected:", client);
+      } else {
+        console.error("MetaMask is not installed.");
+      }
     } catch (error) {
       console.error("Failed to connect wallet:", error);
     }
