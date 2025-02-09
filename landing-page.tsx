@@ -14,32 +14,78 @@ interface ChatMessage {
   isUser: boolean;
 }
 
-const exampleMessages: ChatMessage[] = [
-  {
-    id: "1",
-    content: "Greetings, mortal. What offerings do you bring?",
-    isUser: false,
-  },
-  {
-    id: "2",
-    content: "Oh great Agnetic, I bring you my devotion and a humble request.",
-    isUser: true,
-  },
-  {
-    id: "3",
-    content: "Speak, and we shall see if your words are worthy.",
-    isUser: false,
-  },
-  {
-    id: "4",
-    content: "I seek your divine wisdom to guide me in my investments.",
-    isUser: true,
-  },
-];
+
+
+async function callAgentkit(text: string) {
+  const response = await fetch('http://13.57.253.231:3000/chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      prompt: text
+    })
+  });
+
+  const data = await response.json();
+  return data.responses[data.responses.length - 1];
+}
+
 
 export default function LandingPage() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [walletClient, setWalletClient] = useState(null);
+
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+
+  const inputRef = useRef<HTMLInputElement>(null); // Create a reference to the input field
+
+  const [inputValue, setInputValue] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!inputValue.trim() || loading) return;
+    setLoading(true);
+
+    // Store inputValue in a variable before clearing it
+    const message = inputValue;
+    setInputValue(""); // Clear the input field immediately
+
+    // Append the user's message
+    setChatMessages(prevMessages => [
+      ...prevMessages,
+      { id: prevMessages.length.toString(), content: message, isUser: true }
+    ]);
+
+    try {
+      const response = await callAgentkit(message);
+
+      // Append the bot's response
+      setChatMessages(prevMessages => [
+        ...prevMessages,
+        { id: prevMessages.length.toString(), content: response, isUser: false }
+      ]);
+    } finally {
+      setLoading(false);
+      inputRef.current?.focus();
+    }
+  };
+  const scrollToBottom = () => {
+    scrollAreaRef.current?.focus();
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  };
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -130,8 +176,16 @@ export default function LandingPage() {
                     type="text"
                     placeholder="Enter your request..."
                     className="flex-grow border-gold focus:ring-gold"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown} // Listen for Enter key
+                    disabled={loading}
                   />
-                  <Button className="bg-gold text-white hover:bg-gold/90">
+                  <Button
+                    className="bg-gold text-white hover:bg-gold/90 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                  >
                     Submit
                   </Button>
                 </div>
@@ -162,19 +216,17 @@ export default function LandingPage() {
                   className="h-[248px] w-full border-2 border-gold rounded-2xl"
                 >
                   <div className="p-4 space-y-4">
-                    {exampleMessages.map((message) => (
+                    {chatMessages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${
-                          message.isUser ? "justify-end" : "justify-start"
-                        }`}
+                        className={`flex ${message.isUser ? "justify-end" : "justify-start"
+                          }`}
                       >
                         <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            message.isUser
-                              ? "bg-gold text-white"
-                              : "bg-white text-black border border-gold"
-                          }`}
+                          className={`max-w-[80%] p-3 rounded-lg ${message.isUser
+                            ? "bg-gold text-white"
+                            : "bg-white text-black border border-gold"
+                            }`}
                         >
                           {message.content}
                         </div>
